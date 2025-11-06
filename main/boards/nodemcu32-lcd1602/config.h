@@ -1,0 +1,25 @@
+#ifndef _BOARD_CONFIG_H_
+#define _BOARD_CONFIG_H_
+
+#include <driver/gpio.h>
+
+// I2S mic + speaker
+#define AUDIO_INPUT_SAMPLE_RATE  16000
+#define AUDIO_OUTPUT_SAMPLE_RATE 16000
+
+#define AUDIO_I2S_GPIO_WS   GPIO_NUM_25   // INMP441 L/R clock
+#define AUDIO_I2S_GPIO_SCK  GPIO_NUM_33   // INMP441 BCLK
+#define AUDIO_I2S_GPIO_DIN  GPIO_NUM_32   // INMP441 data out
+#define AUDIO_I2S_GPIO_BCLK GPIO_NUM_27   // MAX98357A BCLK
+#define AUDIO_I2S_GPIO_LRC  GPIO_NUM_26   // MAX98357A LRCLK
+#define AUDIO_I2S_GPIO_DOUT GPIO_NUM_14   // MAX98357A DIN
+
+// LCD1602 I2C
+#define LCD_I2C_SDA_PIN GPIO_NUM_21
+#define LCD_I2C_SCL_PIN GPIO_NUM_22
+#define LCD_I2C_ADDR    0x3E   // Grove LCD1602 address
+
+// Button (optional)
+#define BOOT_BUTTON_GPIO GPIO_NUM_0
+
+#endif

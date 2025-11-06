@@ -423,6 +423,10 @@ choice BOARD_TYPE
     config BOARD_TYPE_AIPI_LITE
         bool "AIPI-Lite"
         depends on IDF_TARGET_ESP32S3
+    config BOARD_TYPE_NODEMCU32_LCD1602
+        bool "NodeMCU-32 with LCD1602 (Grove)"
+        depends on IDF_TARGET_ESP32
+
 endchoice
 
 choice
