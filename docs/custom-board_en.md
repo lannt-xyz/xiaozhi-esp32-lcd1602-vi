@@ -350,7 +350,7 @@ idf.py flash monitor
 If your board directory includes `config.json`, use:
 
 ```bash
-python scripts/release.py my-custom-board
+python scripts/release.py nodemcu32-lcd1602
 ```
 
 The script will automatically detect the target chip, apply SDK configs, and build/pack the firmware.
