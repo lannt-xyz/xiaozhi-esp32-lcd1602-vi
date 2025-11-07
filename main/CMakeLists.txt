@@ -35,8 +35,6 @@ set(SOURCES "audio/audio_codec.cc"
             "settings.cc"
             "device_state_event.cc"
             "assets.cc"
-#            "test_audio_main.c"
-#            "test_screen_main.c"
             "main.cc"
             )
 
