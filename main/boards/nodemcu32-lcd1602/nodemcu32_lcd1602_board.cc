@@ -16,37 +16,62 @@
 
 class Lcd1602Display : public Display {
     SemaphoreHandle_t mtx_;
+    char last1_[17]{};
+    char last2_[17]{};
 public:
     Lcd1602Display() { mtx_ = xSemaphoreCreateMutex(); }
+    ~Lcd1602Display() { if (mtx_) vSemaphoreDelete(mtx_); }
+
     bool Lock(int timeout_ms = 0) override {
         return xSemaphoreTake(mtx_, timeout_ms ? pdMS_TO_TICKS(timeout_ms) : portMAX_DELAY) == pdTRUE;
     }
     void Unlock() override { xSemaphoreGive(mtx_); }
-    void SetStatus(const char* msg) override {
-        if (!msg) return;
+
+    void WriteLines(const char* l1, const char* l2) {
         Lock();
-        // Tách 2 dòng bởi '\n'
-        const char* nl = strchr(msg, '\n');
-        char line1[17] = {0};
-        char line2[17] = {0};
-        if (nl) {
-            int len1 = (int)(nl - msg);
-            strncpy(line1, msg, len1 > 16 ? 16 : len1);
-            strncpy(line2, nl + 1, 16);
-        } else {
-            strncpy(line1, msg, 16);
+        char buf1[17]={0}, buf2[17]={0};
+        if (l1) strncpy(buf1,l1,16);
+        if (l2) strncpy(buf2,l2,16);
+        if (strncmp(buf1,last1_,16)!=0) {
+            lcd_set_cursor(0,0);
+            lcd_print("                ");
+            lcd_set_cursor(0,0);
+            lcd_print(buf1);
+            strncpy(last1_,buf1,16);
         }
-        lcd_set_cursor(0,0); lcd_print("                ");
-        lcd_set_cursor(0,1); lcd_print("                ");
-        lcd_set_cursor(0,0); lcd_print(line1);
-        lcd_set_cursor(0,1); lcd_print(line2);
+        if (strncmp(buf2,last2_,16)!=0) {
+            lcd_set_cursor(0,1);
+            lcd_print("                ");
+            lcd_set_cursor(0,1);
+            lcd_print(buf2);
+            strncpy(last2_,buf2,16);
+        }
         Unlock();
     }
+
+    void SetStatus(const char* msg) override {
+        if (!msg) return;
+        const char* nl = strchr(msg,'\n');
+        if (nl) {
+            int len1 = (int)(nl - msg);
+            char l1[17]={0}, l2[17]={0};
+            strncpy(l1, msg, len1>16?16:len1);
+            strncpy(l2, nl+1, 16);
+            WriteLines(l1,l2);
+        } else {
+            WriteLines(msg,nullptr);
+        }
+    }
+
+    void SetEmotion(const char* emotion) override {
+        if (!emotion) return;
+        WriteLines("Emotion:", emotion);
+    }
+
     void InitHW() {
         lcd_init();
         lcd_clear();
-        lcd_set_cursor(0,0); lcd_print("XiaoZhi Ready");
-        lcd_set_cursor(0,1); lcd_print("LCD1602");
+        WriteLines("XiaoZhi Ready","LCD1602");
     }
 };
 

@@ -12,12 +12,17 @@ void lcd_init(void);
 void lcd_clear(void);
 void lcd_set_cursor(uint8_t col, uint8_t row);
 void lcd_print(const char *text);
-
-// Optional: adjust contrast (value 0x70~0x74). Call after lcd_init extended sequence.
 void lcd_set_contrast(uint8_t val);
-
-// No RGB on white-on-blue module
 static inline void lcd_set_rgb(uint8_t r, uint8_t g, uint8_t b) { (void)r; (void)g; (void)b; }
+
+/* High-level helpers (thread-safe via internal mutex) */
+void lcd_show_status(const char* status);
+void lcd_show_verification_code(const char* code);
+void lcd_show_pairing_code(const char* code);
+void lcd_show_chat_message(const char* role, const char* content);
+void lcd_show_emotion(const char* emotion);
+void lcd_scroll_text(const char* text, int offset);
+void lcd_reinit(void);
 
 #ifdef __cplusplus
 }
