@@ -88,7 +88,7 @@ public:
     void InitHW() {
         lcd_init();
         lcd_clear();
-        WriteLines("XiaoZhi Ready","LCD1602");
+        WriteLines("XiaoZhi Ready","Xin Chao!");
     }
 };
 
@@ -101,7 +101,6 @@ static void lcd_init_task(void* arg) {
     vTaskDelete(nullptr);
 }
 
-// Áp dụng pattern từ ESP32_CGC: trả về codec dùng macro pin trong config.h
 class NodeMCU32_LCD1602 : public WifiBoard {
     Button boot_button_;
 public:
@@ -110,29 +109,16 @@ public:
     }
 
     AudioCodec* GetAudioCodec() override {
-#ifdef AUDIO_I2S_METHOD_SIMPLEX
-        // Simplex: mic + speaker pin tách riêng (INMP441 + MAX98357A)
         static NoAudioCodecSimplex codec(
             AUDIO_INPUT_SAMPLE_RATE,
             AUDIO_OUTPUT_SAMPLE_RATE,
-            AUDIO_I2S_GPIO_BCLK,  // Speaker BCLK
-            AUDIO_I2S_GPIO_LRC,   // Speaker LRCLK
-            AUDIO_I2S_GPIO_DOUT,  // Speaker DIN
-            AUDIO_I2S_GPIO_SCK,   // Mic BCLK
-            AUDIO_I2S_GPIO_WS,    // Mic WS (L/R clock)
-            AUDIO_I2S_GPIO_DIN    // Mic data
+            AUDIO_I2S_GPIO_BCLK,  // loa BCLK
+            AUDIO_I2S_GPIO_LRC,   // loa LRCLK
+            AUDIO_I2S_GPIO_DOUT,  // loa DIN
+            AUDIO_I2S_GPIO_SCK,   // mic BCLK
+            AUDIO_I2S_GPIO_WS,    // mic L/R
+            AUDIO_I2S_GPIO_DIN    // mic DIN
         );
-#else
-        // Duplex (nếu muốn dùng chung bus – ở đây vẫn giữ khả năng compile)
-        static NoAudioCodecDuplex codec(
-            AUDIO_INPUT_SAMPLE_RATE,
-            AUDIO_OUTPUT_SAMPLE_RATE,
-            AUDIO_I2S_GPIO_BCLK,
-            AUDIO_I2S_GPIO_WS,
-            AUDIO_I2S_GPIO_DOUT,
-            AUDIO_I2S_GPIO_DIN
-        );
-#endif
         return &codec;
     }
 
