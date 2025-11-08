@@ -5,6 +5,7 @@
 #include "display/grove_lcd_162.h"
 #include "audio/codecs/no_audio_codec.h"   // giống ESP32_CGC sử dụng NoAudioCodec*
 #include "boards/nodemcu32-lcd1602/config.h"
+#include <wifi_station.h>
 #include <cstring>
 #include <vector>
 #include <esp_log.h>
@@ -106,6 +107,7 @@ class NodeMCU32_LCD1602 : public WifiBoard {
 public:
     NodeMCU32_LCD1602() : boot_button_(BOOT_BUTTON_GPIO) {
         xTaskCreate(lcd_init_task, "lcd_init_task", 4096, nullptr, 5, nullptr);
+        InitializeButtons();
     }
 
     AudioCodec* GetAudioCodec() override {
@@ -127,6 +129,16 @@ public:
     Backlight* GetBacklight() override {
         // Không có backlight PWM cho LCD1602 I2C → trả nullptr hoặc stub nếu framework yêu cầu.
         return nullptr;
+    }
+
+    void InitializeButtons() {
+        boot_button_.OnClick([this]() {
+            auto& app = Application::GetInstance();
+            if (app.GetDeviceState() == kDeviceStateStarting && !WifiStation::GetInstance().IsConnected()) {
+                ResetWifiConfiguration();
+            }
+            app.ToggleChatState();
+        });
     }
 };
 
