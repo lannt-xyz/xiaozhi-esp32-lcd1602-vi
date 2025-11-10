@@ -13,12 +13,42 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
+extern void lcd_command(uint8_t cmd);
+extern void lcd_data(uint8_t data);
+extern void lcd_set_cursor(uint8_t col, uint8_t row);
+extern void lcd_print(const char *str);
+extern void lcd_init();
+extern void lcd_clear();
+
+
 #define TAG "NodeMCU32_LCD1602"
+
 
 class Lcd1602Display : public Display {
     SemaphoreHandle_t mtx_;
     char last1_[17]{};
     char last2_[17]{};
+
+    // --- KHAI BÁO CÁC MẢNG BYTE TOÀN CỤC CHO CÁC BIỂU CẢM LỚN (Big Emojis) ---
+    uint8_t happy_TL[8] = {0b00000, 0b11111, 0b11010, 0b10000, 0b10000, 0b10000, 0b10000, 0b00000};
+    uint8_t happy_TR[8] = {0b00000, 0b11111, 0b01011, 0b00001, 0b00001, 0b00001, 0b00001, 0b00000};
+    uint8_t happy_BL[8] = {0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b01110, 0b00000, 0b00000};
+    uint8_t happy_BR[8] = {0b00001, 0b00001, 0b00001, 0b00001, 0b00001, 0b01110, 0b00000, 0b00000};
+
+    uint8_t neutral_BL[8] = {0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b11111, 0b00000, 0b00000};
+    uint8_t neutral_BR[8] = {0b00001, 0b00001, 0b00001, 0b00001, 0b00001, 0b11111, 0b00000, 0b00000};
+
+    uint8_t angry_TL[8] = {0b00000, 0b11111, 0b11110, 0b10100, 0b10000, 0b10000, 0b10000, 0b00000};
+    uint8_t angry_TR[8] = {0b00000, 0b11111, 0b01111, 0b00101, 0b00001, 0b00001, 0b00001, 0b00000};
+
+    uint8_t thinking_TL[8] = {0b00000, 0b11111, 0b11110, 0b10100, 0b10000, 0b10000, 0b10000, 0b00000};
+    uint8_t thinking_TR[8] = {0b00000, 0b11111, 0b01001, 0b00001, 0b00001, 0b00001, 0b00001, 0b00000};
+
+    uint8_t surprised_TL[8] = {0b00000, 0b11111, 0b11111, 0b10101, 0b10000, 0b10000, 0b10000, 0b00000};
+    uint8_t surprised_TR[8] = {0b00000, 0b11111, 0b11111, 0b10101, 0b00001, 0b00001, 0b00001, 0b00000};
+    uint8_t surprised_BL[8] = {0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b01110, 0b00000, 0b00000};
+    uint8_t surprised_BR[8] = {0b00001, 0b00001, 0b00001, 0b00001, 0b00001, 0b01110, 0b00000, 0b00000};
+
 public:
     Lcd1602Display() { mtx_ = xSemaphoreCreateMutex(); }
     ~Lcd1602Display() { if (mtx_) vSemaphoreDelete(mtx_); }
@@ -52,44 +82,79 @@ public:
 
     void SetStatus(const char* msg) override {
         if (!msg) return;
-        const char* nl = strchr(msg,'\n');
+        const char* nl = strchr(msg, '\n');
         if (nl) {
             int len1 = (int)(nl - msg);
-            char l1[17]={0}, l2[17]={0};
-            strncpy(l1, msg, len1>16?16:len1);
-            strncpy(l2, nl+1, 16);
-            WriteLines(l1,l2);
+            char l1[17] = {0}, l2[17] = {0};
+            strncpy(l1, msg, len1 > 16 ? 16 : len1);
+            strncpy(l2, nl + 1, 16);
+            WriteLines(l1, l2);
         } else {
-            WriteLines(msg,nullptr);
+            // Tách chuỗi dài thành 2 dòng, không ngắt giữa từ
+            char l1[17] = {0}, l2[17] = {0};
+            int len = strlen(msg);
+            if (len <= 16) {
+                WriteLines(msg, nullptr);
+            } else {
+                int split = 16;
+                for (int i = 15; i >= 0; --i) {
+                    if (msg[i] == ' ') {
+                        split = i;
+                        break;
+                    }
+                }
+                strncpy(l1, msg, split);
+                strncpy(l2, msg + split + 1, 16);
+                WriteLines(l1, l2);
+            }
         }
     }
 
+    void LoadFace(uint8_t tl[], uint8_t tr[], uint8_t bl[], uint8_t br[]) {
+        this->createChar(0, tl); 
+        this->createChar(1, tr); 
+        this->createChar(2, bl); 
+        this->createChar(3, br); 
+    }
+    
     void SetEmotion(const char* emotion) override {
         if (!emotion) return;
-        // Translate emotion to icon on LCD1602
-        if (strcmp(emotion, "happy") == 0) {
-            WriteLines(":-)", "happy");
+
+        const char* line1 = "        \x00\x01      ";
+        const char* line2 = "        \x02\x03      ";
+
+        if (strcmp(emotion, "happy") == 0 || strcmp(emotion, "speaking") == 0) {
+            LoadFace(happy_TL, happy_TR, happy_BL, happy_BR); 
         } else if (strcmp(emotion, "sad") == 0) {
-            WriteLines(":-(", "sad");
-        } else if (strcmp(emotion, "neutral") == 0) {
-            WriteLines(":-|", "neutral");
+            LoadFace(happy_TL, happy_TR, neutral_BL, neutral_BR);
+        } else if (strcmp(emotion, "neutral") == 0 || strcmp(emotion, "listening") == 0) {
+            LoadFace(happy_TL, happy_TR, neutral_BL, neutral_BR);
         } else if (strcmp(emotion, "angry") == 0) {
-            WriteLines(">:(", "angry");
-        } else if (strcmp(emotion, "listening") == 0) {
-            WriteLines("^_^", "listening");
-        } else if (strcmp(emotion, "speaking") == 0) {
-            WriteLines(":-D", "speaking");
+            LoadFace(angry_TL, angry_TR, happy_BL, happy_BR); 
         } else if (strcmp(emotion, "thinking") == 0) {
-            WriteLines(":-/", "thinking");
+            LoadFace(thinking_TL, thinking_TR, neutral_BL, neutral_BR);
+        } else if (strcmp(emotion, "surprised") == 0) {
+            LoadFace(surprised_TL, surprised_TR, surprised_BL, surprised_BR);
         } else {
-            WriteLines(":-O", "????"); // surprised or unknown
+            LoadFace(surprised_TL, surprised_TR, surprised_BL, surprised_BR);
         }
+
+        WriteLines(line1, line2);
     }
 
     void InitHW() {
-        lcd_init();
         lcd_clear();
-        WriteLines("XiaoZhi Ready","Xin Chao!");
+        WriteLines("Dang khoi dong...", nullptr);
+    }
+
+    // Phương thức tạo ký tự tùy chỉnh
+    void createChar(uint8_t location, uint8_t charmap[]) {
+        location &= 0x7;
+        // Đã sửa: lcd_command/lcd_data được khai báo extern
+        lcd_command(0x40 | (location << 3)); 
+        for (int i = 0; i < 8; i++) {
+            lcd_data(charmap[i]); 
+        }
     }
 };
 
@@ -121,6 +186,7 @@ public:
             AUDIO_I2S_GPIO_WS,    // mic L/R
             AUDIO_I2S_GPIO_DIN    // mic DIN
         );
+        codec.SetOutputVolume(50); // Mặc định 50%
         return &codec;
     }
 

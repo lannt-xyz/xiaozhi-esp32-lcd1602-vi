@@ -18,14 +18,18 @@ static SemaphoreHandle_t s_lock = NULL;
 static char s_line1[17] = {0};
 static char s_line2[17] = {0};
 
-static esp_err_t lcd_cmd(uint8_t cmd) {
+// SỬA: Đổi tên từ lcd_cmd -> lcd_command, loại bỏ 'static' và thay đổi kiểu trả về thành 'void'
+void lcd_command(uint8_t cmd) {
     uint8_t buf[2] = {0x80, cmd};
-    return i2c_master_transmit(s_lcd, buf, 2, 50);
+    // Bỏ qua giá trị trả về esp_err_t để khớp với khai báo 'extern void'
+    i2c_master_transmit(s_lcd, buf, 2, 50);
 }
 
-static esp_err_t lcd_data(uint8_t data) {
+// SỬA: Loại bỏ 'static' và thay đổi kiểu trả về thành 'void'
+void lcd_data(uint8_t data) {
     uint8_t buf[2] = {0x40, data};
-    return i2c_master_transmit(s_lcd, buf, 2, 50);
+    // Bỏ qua giá trị trả về esp_err_t để khớp với khai báo 'extern void'
+    i2c_master_transmit(s_lcd, buf, 2, 50);
 }
 
 static void lcd_lock()  { if (s_lock) xSemaphoreTake(s_lock, portMAX_DELAY); }
@@ -84,18 +88,18 @@ void lcd_init(void) {
     }
 
     vTaskDelay(pdMS_TO_TICKS(60));
-    lcd_cmd(0x38);
-    lcd_cmd(0x39);
-    lcd_cmd(0x14);
-    lcd_cmd(0x72);       // Contrast (thử 0x70~0x74 nếu mờ)
-    lcd_cmd(0x56);
-    lcd_cmd(0x6C);
+    lcd_command(0x38);
+    lcd_command(0x39);
+    lcd_command(0x14);
+    lcd_command(0x72);       // Contrast (thử 0x70~0x74 nếu mờ)
+    lcd_command(0x56);
+    lcd_command(0x6C);
     vTaskDelay(pdMS_TO_TICKS(250));
-    lcd_cmd(0x38);
-    lcd_cmd(0x0C);
-    lcd_cmd(0x01);
+    lcd_command(0x38);
+    lcd_command(0x0C);
+    lcd_command(0x01);
     vTaskDelay(pdMS_TO_TICKS(3));
-    lcd_cmd(0x02);
+    lcd_command(0x02);
     vTaskDelay(pdMS_TO_TICKS(3));
     ESP_LOGI(TAG, "LCD init done (driver_ng)");
     lcd_clear();
@@ -105,13 +109,13 @@ void lcd_init(void) {
 }
 
 void lcd_clear(void) {
-    lcd_cmd(0x01);
+    lcd_command(0x01);
     vTaskDelay(pdMS_TO_TICKS(3));
 }
 
 void lcd_set_cursor(uint8_t col, uint8_t row) {
     if (row > 1) row = 1;
-    lcd_cmd(0x80 | (col + row * 0x40));
+    lcd_command(0x80 | (col + row * 0x40));
 }
 
 void lcd_print(const char *text) {
@@ -123,11 +127,11 @@ void lcd_print(const char *text) {
 // Thêm hàm chỉnh contrast (tùy chọn)
 void lcd_set_contrast(uint8_t val) {
     if (val < 0x70 || val > 0x74) return;
-    lcd_cmd(0x39);
-    lcd_cmd(0x14);
-    lcd_cmd(val);   // contrast low bits
-    lcd_cmd(0x56);  // power/icon/contrast high bits (keep)
-    lcd_cmd(0x38);
+    lcd_command(0x39);
+    lcd_command(0x14);
+    lcd_command(val);   // contrast low bits
+    lcd_command(0x56);  // power/icon/contrast high bits (keep)
+    lcd_command(0x38);
     vTaskDelay(pdMS_TO_TICKS(3));
 }
 
