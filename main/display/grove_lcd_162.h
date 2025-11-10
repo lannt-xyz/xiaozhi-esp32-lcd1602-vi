@@ -2,6 +2,7 @@
 #define __GROVE_LCD_1602_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,10 +22,12 @@ void lcd_show_emotion(const char* emotion);
 void lcd_scroll_text(const char* text, int offset);
 void lcd_reinit(void);
 
-// THÊM: Các hàm điều khiển LCD cấp thấp (command và data)
-// Chúng ta cần chúng để triển khai hàm createChar trong file C++
+// Các hàm điều khiển LCD cấp thấp (command và data)
 void lcd_command(uint8_t cmd);
 void lcd_data(uint8_t data);
+
+// Hàm tạo ký tự tùy chỉnh (emoji/icon)
+void lcd_create_char(uint8_t location, const uint8_t charmap[8]);
 
 #ifdef __cplusplus
 }
