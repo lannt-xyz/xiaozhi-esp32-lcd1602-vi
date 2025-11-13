@@ -66,23 +66,24 @@ public:
 
     void SetEmotion(const char* emotion) override {
         if (!emotion) return;
-        // Translate emotion to icon on LCD1602
+
+        // Translate emotion to icon on LCD1602 with centered alignment
         if (strcmp(emotion, "happy") == 0) {
-            WriteLines(":-)", "happy");
+            WriteLines("     :-)     ", "    happy    ");
         } else if (strcmp(emotion, "sad") == 0) {
-            WriteLines(":-(", "sad");
+            WriteLines("     :-(     ", "     sad     ");
         } else if (strcmp(emotion, "neutral") == 0) {
-            WriteLines(":-|", "neutral");
+            WriteLines("     :-|     ", "   neutral   ");
         } else if (strcmp(emotion, "angry") == 0) {
-            WriteLines(">:(", "angry");
+            WriteLines("     >:(     ", "    angry    ");
         } else if (strcmp(emotion, "listening") == 0) {
-            WriteLines("^_^", "listening");
+            WriteLines("     ^_^     ", "  listening  ");
         } else if (strcmp(emotion, "speaking") == 0) {
-            WriteLines(":-D", "speaking");
+            WriteLines("     :-D     ", "   speaking  ");
         } else if (strcmp(emotion, "thinking") == 0) {
-            WriteLines(":-/", "thinking");
+            WriteLines("     :-/     ", "   thinking  ");
         } else {
-            WriteLines(":-O", "????"); // surprised or unknown
+            WriteLines("     :-O     ", "    ????     "); // surprised or unknown
         }
     }
 
