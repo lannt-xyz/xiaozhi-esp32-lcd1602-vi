@@ -51,6 +51,9 @@
         "LOADING_ASSETS": "Dang tai tai nguyen...",
         "PLEASE_WAIT": "Vui long doi...",
         "FOUND_NEW_ASSETS": "Tim thay tai nguyen moi: %s",
-        "HELLO_MY_FRIEND": "Xin chao, ban cua toi!"
+        "HELLO_MY_FRIEND": "Xin chao, ban cua toi!",
+        "FLIGHT_MODE_OFF": "Che do may bay tat",
+        "FLIGHT_MODE_ON": "Che do may bay bat",
+        "MODEM_INIT_ERROR": "Khoi tao modem that bai"
     }
 }
