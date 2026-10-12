@@ -1,4 +1,5 @@
 {
+  "type": "nodemcu32-lcd1602",
   "target": "esp32",
   "builds": [
     {

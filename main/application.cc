@@ -985,6 +985,15 @@ void Application::ContinueWakeWordInvoke(const std::string& wake_word) {
     protocol_->SendWakeWordDetected(wake_word);
     SetListeningMode(GetDefaultListeningMode());
 #else
+#if CONFIG_WAKE_WORD_DISABLED
+    // Without wake word detection the invocation comes from a board (e.g. a button).
+    // Send its text so the server replies, instead of only playing the popup sound.
+    if (!wake_word.empty()) {
+        protocol_->SendWakeWordDetected(wake_word);
+        SetListeningMode(GetDefaultListeningMode());
+        return;
+    }
+#endif
     // Set flag to play popup sound after state changes to listening
     // (PlaySound here would be cleared by ResetDecoder in EnableVoiceProcessing)
     play_popup_on_listening_ = true;

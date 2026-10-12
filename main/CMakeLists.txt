@@ -885,8 +885,6 @@ elseif(CONFIG_BOARD_TYPE_LC_S3_WIFI_1_54TFT)
     set(DEFAULT_EMOJI_COLLECTION noto-color-emoji_64)
 elseif(CONFIG_BOARD_TYPE_NODEMCU32_LCD1602)
     set(BOARD_DIR "nodemcu32-lcd1602")
-    set(BUILTIN_TEXT_FONT font_puhui_basic_14_1)
-    set(BUILTIN_ICON_FONT font_awesome_14_1)
 endif()
 
 if(NOT BOARD_DIR AND NOT CMAKE_BUILD_EARLY_EXPANSION)
